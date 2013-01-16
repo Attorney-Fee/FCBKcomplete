@@ -8,6 +8,9 @@
 /**
  * width            - element width (by default 512px)
  * json_url         - url to fetch json object
+ * json_tag         - name of query parameter
+ * additional_params - extra query parameters as an object or function to call
+ * anti_ajax_cache   -adds a timestamp parameter to json query to prevent browser caching 
  * cache            - use cache
  * height           - maximum number of element shown before scroll will apear
  * newel            - show typed text like a element
@@ -279,32 +282,9 @@
             cache.set(xssPrevent(val.key), xssPrevent(val.value));
           });
         }
-        //var maximum = options.maxshownitems < cache.length() ? options.maxshownitems: cache.length();
+        
         var maximum = options.maxshownitems;
         var content = '';
-       /* $.each(cache.search(etext), function (i, object) {
-          if (maximum) {
-            if (options.filter_selected && element.children('option[value="' + object.key + '"]').hasClass("selected")) {
-              //nothing here...
-            } else {
-            	var objval = object.value;
-            	var extra_data = null;
-            	var extra_string = "";
-            	if (typeof objval  === "object"){
-            		var extra_data = objval;
-            		objval = objval.value;
-            		delete extra_data['value'];
-            	}
-              
-              if (extra_data != null)
-              	extra_string = " data-extra='" + JSON.stringify(extra_data)+"' ";
-              
-              content += '<li rel="' + object.key + '"' + extra_string + '>' + xssDisplay(itemIllumination(objval, etext)) + '</li>';
-              counter++;
-              maximum--;
-            }
-          }
-        });*/
         for(var k in data){
         	if(maximum > 0){
         		var object = data[k]
@@ -541,6 +521,8 @@
               		datadir = options.additional_params()
               } 
               datadir[options.json_tag] = xssDisplay(etext)
+              if (options.anti_ajax_cache)
+              	datadir['anti_ajax_cache'] = String(new Date().getTime());
               $.getJSON(options.json_url, datadir, function(data) {
                 if (!isactive) return; // prevents opening the selection again after the focus is already off
                 addMembers(etext, data);
@@ -559,11 +541,12 @@
         json_url: null,
         json_tag: "tag",
         additional_params: {},
-        width: 512,
+        anti_ajax_cache: true,
+        width: 800,
         cache: false,
-        height: "10",
+        height: "15",
         newel: false,
-        addontab: false,
+        addontab: true,
         addoncomma: false,
         firstselected: false,
         filter_case: false,
