@@ -121,7 +121,18 @@
         
       }
       
-      function addItem(title, value, preadded, locked, focusme) {
+      function addItem(title, value, preadded, locked, focusme,extra_data) {
+      	var extra_parts = "";
+      	var extra_classes = "";
+      	if (extra_data !== undefined){
+      		for (var key in extra_data){
+      			if (key == 'class')
+      				extra_classes = extra_data[key];
+      			else
+ 					extra_parts += 'data-'+key+'="'+extra_data[key]+'" ';
+      		}
+      	}
+      	
         if (!maxItems()) {
           return false;
         }
@@ -129,7 +140,7 @@
         var id = randomId();
         var txt = document.createTextNode(xssDisplay(title));
         var aclose = $('<a class="closebutton" href="#"></a>');
-        var li = $('<li class="'+liclass+'" rel="'+value+'" id="pt_'+id+'"></li>').prepend(txt).append(aclose);
+        var li = $('<li class="'+liclass+' ' + extra_classes + '" rel="'+value+'" id="pt_'+id+'" ' + extra_parts+'></li>').prepend(txt).append(aclose);
 
         holder.append(li);
 
@@ -268,19 +279,52 @@
             cache.set(xssPrevent(val.key), xssPrevent(val.value));
           });
         }
-        var maximum = options.maxshownitems < cache.length() ? options.maxshownitems: cache.length();
+        //var maximum = options.maxshownitems < cache.length() ? options.maxshownitems: cache.length();
+        var maximum = options.maxshownitems;
         var content = '';
-        $.each(cache.search(etext), function (i, object) {
+       /* $.each(cache.search(etext), function (i, object) {
           if (maximum) {
             if (options.filter_selected && element.children('option[value="' + object.key + '"]').hasClass("selected")) {
               //nothing here...
             } else {
-              content += '<li rel="' + object.key + '">' + xssDisplay(itemIllumination(object.value, etext)) + '</li>';
+            	var objval = object.value;
+            	var extra_data = null;
+            	var extra_string = "";
+            	if (typeof objval  === "object"){
+            		var extra_data = objval;
+            		objval = objval.value;
+            		delete extra_data['value'];
+            	}
+              
+              if (extra_data != null)
+              	extra_string = " data-extra='" + JSON.stringify(extra_data)+"' ";
+              
+              content += '<li rel="' + object.key + '"' + extra_string + '>' + xssDisplay(itemIllumination(objval, etext)) + '</li>';
               counter++;
               maximum--;
             }
           }
-        });
+        });*/
+        for(var k in data){
+        	if(maximum > 0){
+        		var object = data[k]
+        		var objval = object.value;
+            	var extra_data = null;
+            	var extra_string = "";
+            	if (typeof objval  === "object"){
+            		var extra_data = objval;
+            		objval = objval.value;
+            		delete extra_data['value'];
+            	}
+              
+              if (extra_data != null)
+              	extra_string = " data-extra='" + JSON.stringify(extra_data)+"' ";
+              
+              content += '<li rel="' + object.key + '"' + extra_string + '>' + xssDisplay(itemIllumination(objval, etext)) + '</li>';
+              counter++;
+              maximum--;
+        	}
+        }
         feed.append(content);
         if (options.firstselected) {
           focuson = feed.children("li:visible:first");
@@ -337,7 +381,10 @@
         
         feed.children("li").unbind("mousedown").mousedown( function() {
           var option = $(this);
-          addItem(option.text(), option.attr("rel"), 0, 0, 1);
+          var extra_option = null;
+          if (option.attr('data-extra'))
+          	extra_option = option.data('extra') 
+          addItem(option.text(), option.attr("rel"), 0, 0, 1,extra_option);
           clear_feed(1);
           complete.hide();
         });
@@ -350,7 +397,10 @@
 
           if ((event.keyCode == _key.enter || event.keyCode == _key.tab || event.keyCode == _key.comma) && checkFocusOn()) {
             var option = focuson;
-            addItem(option.text(), option.attr("rel"), 0, 0, 1);
+            var extra_option = null;
+	        if (option.attr('data-extra'))
+	          	extra_option = option.data('extra')
+            addItem(option.text(), option.attr("rel"), 0, 0, 1,extra_option);
             return _preventDefault(event);
           }
 
@@ -363,7 +413,10 @@
             if ((options.addontab || options.addoncomma) && options.newel) {
               focuson = feed.children("li:visible:first");
               var option = focuson;
-              addItem(option.text(), option.attr("rel"), 0, 0, 1);
+              var extra_option = null;
+	          if (option.attr('data-extra'))
+	          	extra_option = option.data('extra')
+              addItem(option.text(), option.attr("rel"), 0, 0, 1,extra_option);
               return _preventDefault(event);
             }
           }
@@ -437,6 +490,8 @@
       }
       
       function xssPrevent(string, flag) {
+      	if (typeof string  === "object")
+      		return string;
         if (typeof flag != "undefined") {
           for(i = 0; i < string.length; i++) {
             var charcode = string.charCodeAt(i);
