@@ -33,6 +33,7 @@
  * input_min_size   - minimum size of the input element (default: 1)
  * input_name       - value of the input element's 'name'-attribute (no 'name'-attribute set if empty)
  * select_all_text  - text for select all link
+ * icon             - optional icon html
  */
 
 (function( $, undefined ) {
@@ -190,6 +191,9 @@
         var input = $('<input type="text" class="maininput" size="' + options.input_min_size + '" autocomplete="off">');
         if (options.input_tabindex > 0) input.attr("tabindex", options.input_tabindex);
         if (options.input_name != "") input.attr("name", options.input_name);
+
+		if (options.icon != null)
+			holder.append($(options.icon));
 
         holder.append(li.append(input));
 
@@ -564,7 +568,8 @@
         input_tabindex: 0,
         input_min_size: 1,
         input_name: "",
-        bricket: true
+        bricket: true,
+        icon: null,
       },
       opt);
 
